@@ -25,6 +25,11 @@ interface ProductsResponse {
   pages: number;
 }
 
+export const signIn = async (username: string, password: string): Promise<number> => {
+  const response = await axios.post("/api/sign_in", { username, password }, { withCredentials: true });
+  return response.status;
+};
+
 export const fetchProducts = async (
   page: number = 1
 ): Promise<ProductsResponse> => {

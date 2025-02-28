@@ -1,30 +1,25 @@
 import { Link } from "react-router-dom";
 import { FC } from "react";
-import { Button, Typography } from "antd";
+import { Button, Typography, Flex } from "antd";
 import styled from "styled-components";
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
-const HomeContainer = styled.div`
-  max-width: 500px;
-  margin: 100px auto;
-  text-align: center;
+const HomeContainer = styled(Flex)`
+  height: 70vh;
 `;
 
-const ButtonsContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+const ButtonsContainer = styled(Flex)`
   margin-top: 30px;
 `;
 
 const Home: FC = () => (
-  <HomeContainer>
+  <HomeContainer vertical align="center" justify="center" >
     <Title level={1}>Добро пожаловать!</Title>
-    <Paragraph>
+    <Title level={5}>
       Войдите или создайте аккаунт, чтобы просматривать товары.
-    </Paragraph>
-    <ButtonsContainer>
+    </Title>
+    <ButtonsContainer justify="center" gap="middle">
       <Link to="/login">
         <Button type="primary">Вход</Button>
       </Link>
