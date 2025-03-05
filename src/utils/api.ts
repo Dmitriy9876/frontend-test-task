@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 const API_BASE_URL = "http://89.191.225.217/api";
 
@@ -25,8 +25,24 @@ interface ProductsResponse {
   pages: number;
 }
 
-export const signIn = async (username: string, password: string): Promise<number> => {
-  const response = await axios.post("/api/sign_in", { username, password }, { withCredentials: true });
+export const signUp = async (
+  username: string,
+  fullName: string,
+  password: string
+): Promise<AxiosResponse> => {
+  const response = await axios.post("http://89.191.225.217/api/sign_up", {
+    username,
+    full_name: fullName,
+    password,
+  });
+  return response;
+};
+
+export const signIn = async (
+  username: string,
+  password: string
+): Promise<number> => {
+  const response = await axios.post("/api/sign_in", { username, password });
   return response.status;
 };
 

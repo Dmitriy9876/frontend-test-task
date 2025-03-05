@@ -1,119 +1,107 @@
-import { useState, FormEventHandler } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { Input, Button, Typography } from "antd";
+import { signUp } from "../utils/api";
+import { Input, Button, Typography, Flex, Form, message } from "antd";
+import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 
 const { Title } = Typography;
 
-const RegisterContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 70vh;
-`;
-
-const RegisterFormWrapper = styled.div`
+const RegisterContainer = styled(Flex)`
   width: 300px;
-  text-align: center;
+  height: 80vh;
+  margin: 0 auto;
+  form {
+    width: 100%;
+  }
 `;
 
-const StyledForm = styled.form`
-  display: flex;
-  flex-direction: column;
+const StyledFormItem = styled(Form.Item)`
+  margin-bottom: 15px;
+  .ant-form-item-explain {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
 `;
 
-const StyledInput = styled(Input)`
-  margin-bottom: 10px;
-`;
-
-const StyledPasswordInput = styled(Input.Password)`
-  margin-bottom: 10px;
-`;
-
-const StyledButton = styled(Button)`
-  width: 100%;
-`;
-
-const ErrorMessage = styled.p`
-  color: red;
-  font-size: 14px;
-  margin-top: 10px;
-`;
+interface RegisterFormValues {
+  username: string;
+  fullName: string;
+  password: string;
+}
 
 const Register: React.FC = () => {
-  const [username, setUsername] = useState<string>("");
-  const [fullName, setFullName] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [passwordError, setPasswordError] = useState<string>("");
-  const [serverError, setServerError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm<RegisterFormValues>();
   const navigate = useNavigate();
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
-    setPasswordError("");
-    setServerError("");
-
-    if (password.length < 8) {
-      setPasswordError("Пароль должен содержать минимум 8 символов!");
-      return;
-    }
+  const handleSubmit = async ({
+    username,
+    fullName,
+    password,
+  }: RegisterFormValues) => {
+    setLoading(true);
 
     try {
-      const response = await axios.post("http://89.191.225.217/api/sign_up", {
-        username,
-        full_name: fullName.trim(),
-        password,
-      });
+      const response = await signUp(username.trim(), fullName || "", password);
 
       if (response.status === 200) {
         navigate("/login");
       }
     } catch (error: any) {
-      if (error.response) {
-        const errorMsg = error.response.data.detail
-          ? error.response.data.detail.map((err: { msg: string }) => err.msg).join("\n")
-          : "Проверьте введенные данные.";
-        setServerError(errorMsg);
-      } else {
-        setServerError("Ошибка соединения с сервером.");
+      if (!error.response) {
+        message.error("Ошибка сети. Проверьте подключение к интернету.");
+        return;
       }
+
+      message.error(error.response.data.message || "Ошибка регистрации");
+      form.setFieldsValue({ password: "" });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <RegisterContainer>
-      <RegisterFormWrapper>
-        <Title level={2}>Регистрация</Title>
-        <StyledForm onSubmit={handleSubmit}>
-          <StyledInput
-            type="text"
-            placeholder="Имя пользователя"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.trim())}
-            required
-          />
-          <StyledInput
-            type="text"
-            placeholder="Полное имя"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
-          <StyledPasswordInput
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <StyledButton type="primary" htmlType="submit">
-            Зарегистрироваться
-          </StyledButton>
+    <RegisterContainer vertical justify="center" align="center">
+      <Title level={2}>Регистрация</Title>
+      <Form onFinish={handleSubmit}>
+        <StyledFormItem
+          name="username"
+          validateTrigger="onSubmit"
+          rules={[
+            { required: true, message: "Введите имя пользователя" },
+            { min: 3, message: "Минимум 3 символа" },
+            { max: 30, message: "Максимум 30 символов" },
+          ]}
+        >
+          <Input prefix={<UserOutlined />} placeholder="Имя пользователя" />
+        </StyledFormItem>
 
-          {passwordError && <ErrorMessage>{passwordError}</ErrorMessage>}
-          {serverError && <ErrorMessage>{serverError}</ErrorMessage>}
-        </StyledForm>
-      </RegisterFormWrapper>
+        <StyledFormItem name="fullName">
+          <Input
+            prefix={<UserOutlined />}
+            placeholder="Полное имя (необязательно)"
+            allowClear
+          />
+        </StyledFormItem>
+
+        <StyledFormItem
+          name="password"
+          validateTrigger="onSubmit"
+          rules={[
+            { required: true, message: "Введите пароль" },
+            { min: 8, message: "Минимум 8 символов" },
+          ]}
+        >
+          <Input.Password prefix={<LockOutlined />} placeholder="Пароль" />
+        </StyledFormItem>
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit" block loading={loading}>
+            Зарегистрироваться
+          </Button>
+        </Form.Item>
+      </Form>
     </RegisterContainer>
   );
 };
